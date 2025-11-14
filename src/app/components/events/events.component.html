@@ -1,0 +1,164 @@
+<div class="container">
+  <header class="header">
+    <h1>PooPooPeePee Events</h1>
+    <p>Track and manage events</p>
+  </header>
+
+  <mat-tab-group #tabGroup [(selectedIndex)]="selectedTabIndex" class="tabs">
+    <!-- Create Event Tab -->
+    <mat-tab label="Create Event">
+      <mat-card class="card">
+        <mat-card-header>
+          <mat-card-title>Add New Event</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <form (ngSubmit)="createEvent()" class="form">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Event Type</mat-label>
+              <mat-select [(ngModel)]="newEvent.eventType" name="eventType" required>
+                <mat-option *ngFor="let type of eventTypes" [value]="type">
+                  {{ type }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <button mat-raised-button color="primary" type="submit">
+              <mat-icon>add</mat-icon>
+              Create Event
+            </button>
+          </form>
+        </mat-card-content>
+      </mat-card>
+    </mat-tab>
+
+    <!-- Simple Search Tab -->
+    <mat-tab label="Search Events">
+      <mat-card class="card">
+        <mat-card-header>
+          <mat-card-title>Search Events</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <form (ngSubmit)="searchSimple()" class="form">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Event Type (Optional)</mat-label>
+              <mat-select [(ngModel)]="searchParams.eventType" name="searchEventType">
+                <mat-option [value]="undefined">All Types</mat-option>
+                <mat-option *ngFor="let type of eventTypes" [value]="type">
+                  {{ type }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Time Period (Optional)</mat-label>
+              <mat-select [(ngModel)]="searchParams.since" name="since">
+                <mat-option [value]="undefined">All Time</mat-option>
+                <mat-option *ngFor="let option of searchSinceOptions" [value]="option.value">
+                  {{ option.label }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Limit (Optional)</mat-label>
+              <input matInput type="number" [(ngModel)]="searchParams.limit" name="limit" placeholder="e.g., 50">
+            </mat-form-field>
+
+            <div class="button-group">
+              <button mat-raised-button color="primary" type="submit">
+                <mat-icon>search</mat-icon>
+                Search
+              </button>
+              <button mat-button type="button" (click)="clearResults()">
+                Clear Results
+              </button>
+            </div>
+          </form>
+        </mat-card-content>
+      </mat-card>
+    </mat-tab>
+
+    <!-- DateTime Search Tab -->
+    <mat-tab label="Search by Date Range">
+      <mat-card class="card">
+        <mat-card-header>
+          <mat-card-title>Search by Date/Time Range</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <form (ngSubmit)="searchByDateTime()" class="form">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Event Type (Optional)</mat-label>
+              <mat-select [(ngModel)]="dateTimeParams.eventType" name="dateTimeEventType">
+                <mat-option [value]="undefined">All Types</mat-option>
+                <mat-option *ngFor="let type of eventTypes" [value]="type">
+                  {{ type }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Start Date</mat-label>
+              <input matInput [matDatepicker]="startPicker" [(ngModel)]="startDate" name="startDate" required>
+              <mat-datepicker-toggle matSuffix [for]="startPicker"></mat-datepicker-toggle>
+              <mat-datepicker #startPicker></mat-datepicker>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>End Date</mat-label>
+              <input matInput [matDatepicker]="endPicker" [(ngModel)]="endDate" name="endDate" required>
+              <mat-datepicker-toggle matSuffix [for]="endPicker"></mat-datepicker-toggle>
+              <mat-datepicker #endPicker></mat-datepicker>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Limit (Optional)</mat-label>
+              <input matInput type="number" [(ngModel)]="dateTimeParams.limit" name="dateTimeLimit" placeholder="e.g., 50">
+            </mat-form-field>
+
+            <div class="button-group">
+              <button mat-raised-button color="primary" type="submit">
+                <mat-icon>search</mat-icon>
+                Search
+              </button>
+              <button mat-button type="button" (click)="clearResults()">
+                Clear Results
+              </button>
+            </div>
+          </form>
+        </mat-card-content>
+      </mat-card>
+    </mat-tab>
+
+    <!-- Results Tab -->
+    <mat-tab label="Results">
+      <mat-card class="card">
+        <mat-card-header>
+          <mat-card-title>Search Results ({{ searchResults.length }})</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="table-container">
+            <table mat-table [dataSource]="searchResults" class="mat-elevation-z2">
+              <ng-container matColumnDef="id">
+                <th mat-header-cell *matHeaderCellDef>ID</th>
+                <td mat-cell *matCellDef="let event">{{ event.id }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="eventType">
+                <th mat-header-cell *matHeaderCellDef>Event Type</th>
+                <td mat-cell *matCellDef="let event">{{ event.eventType }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="dateTime">
+                <th mat-header-cell *matHeaderCellDef>Date & Time</th>
+                <td mat-cell *matCellDef="let event">{{ event.dateTime | date:'short' }}</td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+            </table>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </mat-tab>
+  </mat-tab-group>
+</div>
